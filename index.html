@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lottery Probability Calculator</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a237e, #0d47a1);
+            color: white;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        .lottery-title {
+            text-align: center;
+            font-size: 2.5em;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+            animation: jackpot 2s infinite;
+        }
+        .input-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+        input {
+            width: 300px;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #ffd700;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.9);
+            margin: 15px;
+        }
+        button {
+            background: #e53935;
+            color: white;
+            padding: 15px 40px;
+            font-size: 18px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        button:hover {
+            background: #d32f2f;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        .numbers-container {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .number-ball {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #ffd700;
+            color: #1a237e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 20px;
+            margin: 0 auto;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+            animation: ballEntry 0.8s ease-out forwards;
+        }
+        .result-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        .highlight {
+            color: #ffd700;
+            font-weight: bold;
+        }
+        .match {
+            background: #e53935 !important;
+            color: white !important;
+            animation: pulse 1s infinite;
+        }
+
+        /* 新增动画效果 */
+        @keyframes ballEntry {
+            0% {
+                transform: rotate(0deg) scale(0);
+                opacity: 0;
+            }
+            100% {
+                transform: rotate(720deg) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes spin {
+            0% { transform: rotateY(0deg); }
+            100% { transform: rotateY(360deg); }
+        }
+
+        @keyframes jackpot {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .spinner {
+            animation: spin 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="lottery-title">🎰 LUCKY NUMBER LOTTERY 🎰</h1>
+        
+        <div class="input-section">
+            <p>Enter 6 unique numbers (1-40), separated by commas:</p>
+            <input type="text" id="userInput" placeholder="Example: 7,14,21,28,35,40">
+            <button onclick="startLottery()">Draw & Calculate</button>
+        </div>
+
+        <div class="result-section" id="result"></div>
+    </div>
+
+    <script>
+        function combination(n, k) 
+        {
+            let result = 1;
+            for (let i = 0; i < k; i++) 
+            {
+                result *= (n - i) / (i + 1);
+            }
+            return Math.round(result);
+        }
+
+        function generateRandomNumbers(count, max) 
+        {
+            let numbers = new Set();
+            while (numbers.size < count) 
+            {
+                numbers.add(Math.floor(Math.random() * max) + 1);
+            }
+            return [...numbers].sort((a, b) => a - b);
+        }
+
+        function createNumberBalls(numbers, matches = [])
+        {
+            return `
+            <div class="numbers-container">
+            ${numbers.map(num => `
+                <div class="number-ball ${matches.includes(num) ? 'match' : ''}">
+                ${num.toString().padStart(2, '0')}
+                </div>`).join('')}
+            </div>`;
+        }
+
+        function startLottery() 
+        {
+            let input = document.getElementById('userInput').value;
+            let userNumbers = input.split(',').map(num => parseInt(num.trim()));
+
+            if (userNumbers.length !== 6 || new Set(userNumbers).size !== 6 || userNumbers.some(n => n < 1 || n > 40)) 
+            {
+                alert("Enter 6 unique numbers between 1 and 40!");
+                return;
+            }
+
+            let winningNumbers = generateRandomNumbers(6, 40);
+            let matchedNumbers = userNumbers.filter(num => winningNumbers.includes(num));
+            let matchedCount = matchedNumbers.length;
+
+            let totalCombinations = combination(40, 6);
+            let probability = (combination(6, matchedCount) * combination(34, 6 - matchedCount) / totalCombinations) * 100;
+
+            document.getElementById('result').innerHTML = `
+            <h2>Draw Results:</h2>
+            <p>Winning Numbers:</p> ${createNumberBalls(winningNumbers)}
+            <p>Your Numbers:</p> ${createNumberBalls(userNumbers, matchedNumbers)}
+            <p>Matched Numbers: <span class="highlight">${matchedCount}</span></p>
+            <p>Winning Probability: <span class="highlight">${probability.toFixed(8)}%</span></p>
+            <p>Total Possible Combinations: <span class="highlight">${totalCombinations.toLocaleString()}</span></p>
+            `;
+
+            document.querySelector('.lottery-title').classList.add('jackpot');
+            setTimeout(() => document.querySelector('.lottery-title').classList.remove('jackpot'), 2000);
+        }
+    </script>
+</body>
+</html>
